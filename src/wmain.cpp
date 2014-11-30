@@ -11,13 +11,15 @@ int wmain()
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
 
 	// Perform image processing.
-	testProcessImgs(L"D:\\tmp\\samples");
+	//testProcessImgs(L"D:\\tmp\\samples");
 
-	//Weathering *we = new Weathering (L"D:\\tmp\\samples\\Koala__t.jpg");
-	//we->apply();
+	//Weathering *we = new Weathering (L"D:\\Code\\samples\\Koala.jpg");
+	Weathering *we = new Weathering (L"D:\\Code\\samples\\vase.jpg");
+	we->apply();
 
 
 	// Shutdown GDI+.
 	GdiplusShutdown(gdiplusToken);
 
+	delete we;
 }

@@ -14,6 +14,8 @@
 #include <agents.h>
 #include <ppl.h>
 
+#include "tools.h"
+
 using namespace Concurrency;
 using namespace Gdiplus;
 using namespace std;
@@ -37,9 +39,8 @@ void processImgs(Bitmap* bmp, const function <void (DWORD&)>& f);
 // Image filters
 // ---------------------------------------------------------------------------
 
-
 /// <summary>Image filter. Apply a gamma correction of RGB channel.</summary>
-Bitmap* filterGammaCorrection(Bitmap* bmp);
+Bitmap* filterGammaCorrection(Bitmap* bmp, double gamma);
 
 /// <summary>Image filter. Converts a given image color to grayscale.</summary>
 Bitmap* filterGrayscale(Bitmap* bmp);
@@ -61,6 +62,11 @@ DWORD getColorDominance(Bitmap* bmp);
 /// (bmp, jpeg, etc).</summary>
 int getEncoderCLSID(const WCHAR* format, CLSID* pClsid);
 
+/// <summary>Compute difference of intensity between pixels</summary>
+float diffIntensity (DWORD pixel1, DWORD pixel2);
+
+/// <summary>Return a random color.</summary>
+DWORD setRandomRGB ();
 // ---------------------------------------------------------------------------
 // Tools
 // ---------------------------------------------------------------------------

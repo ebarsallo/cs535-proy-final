@@ -5,6 +5,8 @@
 // Remarks
 // Compile using: cl.exe /DUNICODE /EHsc ip.cpp /link gdiplus.lib
 // ---------------------------------------------------------------------------
+#include <time.h>
+
 #include "ip.h"
 
 
@@ -35,7 +37,7 @@ loadImage(wstring filename) {
 }
 
 
-/// <summary>Process each pixel of an bmp object with a filter function</summary>
+/// <summary>Process each pixel of an bmp object with a filter function.</summary>
 void 
 processImg(Bitmap* bmp, const function <void (DWORD&)>& f)
 {
@@ -90,17 +92,21 @@ filterGrayscale(Bitmap* bmp)
 
 /// <summary>Image filter. Apply a gamma correction of RGB channel.</summary>
 Bitmap* 
-filterGammaCorrection(Bitmap* bmp) 
+filterGammaCorrection(Bitmap* bmp, double gamma) 
 {
 	processImg(bmp, 
-		[](DWORD& color) {
+		[gamma](DWORD& color) {
 			BYTE r, g, b;
-			double gamma = 1/2.2;
+			double gv = gamma;
 
 			getRGB(color, r, g, b);
 
 			// Apply gamma correction to the pixel.
-			color = setRGB(pow(r, gamma), pow(g, gamma), pow(b, gamma));
+			BYTE r1 = static_cast<BYTE>(pow(r, gv));
+			BYTE g1 = static_cast<BYTE>(pow(g, gv));
+			BYTE b1 = static_cast<BYTE>(pow(b, gv));
+
+			color = setRGB(r1, g1, b1);
 		}
 	);
 	return bmp;
@@ -160,6 +166,21 @@ filterDarkEffect(Bitmap* bmp, unsigned int percent)
 	);
 	return bmp;
 }
+
+
+/// <summary>Image filter. Apply a <b>Gaussian</b> blur to a given image.</summary>
+/*
+Bitmap* 
+filterGaussianBlur(Bitmap* bmp, DWORD mask)
+{
+	processImg(bmp, 
+		[mask](DWORD& color) {
+			color = color & mask;
+		}
+	);
+	return bmp;
+}
+*/
 
 
 /// <summary>Get the dominant RGB component in a given image.</summary>
@@ -235,6 +256,37 @@ getEncoderCLSID(const WCHAR* format, CLSID* pClsid)
 	return -1;  // Failure
 }
 
+
+/// diff
+/// <summary>Compute difference of intensity between pixels</summary>
+float
+diffIntensity (DWORD pixel1, DWORD pixel2)
+{
+
+	BYTE r1, g1, b1;
+	BYTE r2, g2, b2;
+
+	getRGB(pixel1, r1, g1, b1);
+	getRGB(pixel2, r2, g2, b2);
+
+	return euclideanDst(r1, g1, b1, r2, g2, b2);
+}
+ 
+
+/// randomRGB
+/// <summary>Return a random RGB color.</summary>
+DWORD
+setRandomRGB ()
+{
+	//srand(time(NULL));
+
+	BYTE r, g, b;
+	r = rand() % 255;
+	g = rand() % 255;
+	b = rand() % 255;
+
+	return setRGB(r, g, b);
+}
 
 // ---------------------------------------------------------------------------
 // Classes Implementation
@@ -348,7 +400,7 @@ void testProcessImgs(const wstring& directory)
 
    // Darkens the color of the provided Bitmap object.
    transformer<Bitmap*, Bitmap*> gammaC([](Bitmap* bmp) {
-      return filterGammaCorrection(bmp);
+      return filterGammaCorrection(bmp, 1/2.2);
    });
 
    // Applies sepia toning to the remaining images.

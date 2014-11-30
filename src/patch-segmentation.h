@@ -10,5 +10,28 @@
 // Remarks
 // Header file
 // ---------------------------------------------------------------------------
+#include <algorithm>
 
 #include "ip.h"
+#include "Picture.h"
+#include "DisjointSet.h"
+#include "tools.h"
+
+// ---------------------------------------------------------------------------
+// Constants and Parameters
+// ---------------------------------------------------------------------------
+
+#define CTTE__k 500
+#define CTTE__MIN_SIZE 20
+#define PARAM__COLORING_PATCH 1
+
+
+// ---------------------------------------------------------------------------
+// Routines
+// ---------------------------------------------------------------------------
+
+void segmentImg (Picture*, int *);
+DisjointSet *segmentGraph(Graph*);
+float getThreshold(int, int);
+void coloringPatch(Bitmap* bmp, DWORD *pattern);
+

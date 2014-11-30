@@ -8,64 +8,46 @@
 #include "Weathering.h"
 
 
-Weathering::Weathering(void)
-{
-}
-
-
-Weathering::~Weathering(void)
-{
-}
-
-
+/// <summary>Construct a Weathering object upon a image file.</summary>
 Weathering::Weathering(wstring filename)
 {
-	setPhoto(filename);
+	_pic = new Picture(filename);
+	//setPhoto(filename);
 }
 
 
+Weathering::~Weathering()
+{
+	delete _pic;
+}
+
+/*
 void 
 Weathering::setPhoto(wstring filename) 
 {
-	_img = filename;
-	_bmp = loadImage(_img);
+	_imgfn = filename;
+	_bmp   = loadImage(_imgfn);
 }
 
 wstring 
 Weathering::getPhoto() 
 {
-	return _img;
+	return _imgfn;
 }
+*/
 
 void
 Weathering::apply (void) 
 {
-	Bitmap *bmp = _bmp;
+	wstring fn = _pic->getFilename(); //_imgfn;
+	Bitmap *bmp = _pic->getBitmap();  //_bmp;
+	int num;
 
-	int width  = bmp->GetWidth();
-	int height = bmp->GetHeight();
+	//DWORD *pixels = new DWORD[_pic->getWidth() * _pic->getHeight()];
+	//_pic->getRGBArray(pixels);
 
-	// Lock the bitmap.
-	BitmapData bitmapData;
-	//Rect rect(0, 0, bmp->GetWidth(), bmp->GetHeight());
-	//bmp->LockBits(&rect, ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
+	segmentImg(_pic, &num);
 
-	// Get a pointer to the bitmap data.
-	DWORD* image_bits = (DWORD*)bitmapData.Scan0;
-
-	for (int y = 0; y < height; ++y)
-	{
-		for (int x = 0; x < width; ++x)
-		{
-			// Get the current pixel value.
-			DWORD* curr_pixel = image_bits + (y * width) + x;
-
-			// Call the function.
-			//f(*curr_pixel);
-			//filterGammaCorrection(image_bits);
-		}
-	}
-
-	// Unlock the bitmap.
-	//bmp->UnlockBits(&bitmapData);
+	_pic->save();
+	
 }
