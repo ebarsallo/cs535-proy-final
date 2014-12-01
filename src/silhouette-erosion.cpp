@@ -123,17 +123,25 @@ erodeSilhouette(DWORD *pixels, float *durability, int width, int height, int t)
 				y0 = y - w;
 		} else y0 = 0;
 
-		int na=0;		// number of pixel in air
-		int ns=0;		// number of pixel in stone
+		float na=0;		// number of pixel in air
+		float ns=0;		// number of pixel in stone
 
 		// compute erosion for neighborhood (width x width)
 		for (int yi=0; y0+yi<y0+w; yi++)
 			for (int xi=0; x0+xi<x0+w; xi++) {
 
-				if (isBg(pixels[(y0+yi)*width + (x0+xi)])) 
-					na++;
-				else
-					ns++;
+				if (isBg(pixels[(y0+yi)*width + (x0+xi)])) {
+					// if the pixel correspond to upper air: wa=2, lower: wa=0.5, otherwise: wa=1.0 
+					float wa;
+					if (y0+yi < y) 
+						wa = 2.0;
+					else if (y0+yi+2 > y) 
+						wa = 0.5;
+					else wa = 1.0;
+					na += wa;
+				
+				} else
+					ns += 1.0;
 			} /* for (x0+xi<x0+w) */
 
 
