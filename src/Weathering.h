@@ -10,6 +10,7 @@
 #include "ip.h"
 #include "Picture.h"
 #include "patch-segmentation.h"
+#include "silhouette-erosion.h"
 
 class Weathering
 {

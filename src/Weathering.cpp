@@ -12,7 +12,6 @@
 Weathering::Weathering(wstring filename)
 {
 	_pic = new Picture(filename);
-	//setPhoto(filename);
 }
 
 
@@ -21,20 +20,7 @@ Weathering::~Weathering()
 	delete _pic;
 }
 
-/*
-void 
-Weathering::setPhoto(wstring filename) 
-{
-	_imgfn = filename;
-	_bmp   = loadImage(_imgfn);
-}
 
-wstring 
-Weathering::getPhoto() 
-{
-	return _imgfn;
-}
-*/
 
 void
 Weathering::apply (void) 
@@ -46,7 +32,12 @@ Weathering::apply (void)
 	//DWORD *pixels = new DWORD[_pic->getWidth() * _pic->getHeight()];
 	//_pic->getRGBArray(pixels);
 
-	segmentImg(_pic, &num);
+
+	erodeSilhouette(_pic);
+
+	//segmentImg(_pic, &num);
+
+
 
 	_pic->save();
 	

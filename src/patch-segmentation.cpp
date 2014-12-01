@@ -25,10 +25,8 @@ segmentImg (Picture *img, int *numPatch)
 	int width  = img->getWidth();
 	int height = img->getHeight();
 
-	//Bitmap *bmp = img->getBitmap();
-	
 	// Apply gamma correction first
-	//filterGammaCorrection(img->_bmp, 1/2.2);
+	filterGammaCorrection(img->_bmp, 1/2.2);
 
 	// Build an undirected graph upon pixels
 	// Since the graph is undirected and assuming that each pixel (node) have 8 neighbors (the pixels just next to it),
@@ -198,8 +196,6 @@ coloringPatch(Bitmap* bmp, DWORD *pattern)
 			// Get the current pixel value.
 			DWORD* curr_pixel = image_bits + (y * width) + x;
 			*curr_pixel = pattern[(y * width) + x];
-
-
 		}
 	}
 	

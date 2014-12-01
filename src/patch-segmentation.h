@@ -16,14 +16,8 @@
 #include "Picture.h"
 #include "DisjointSet.h"
 #include "tools.h"
+#include "params.h"
 
-// ---------------------------------------------------------------------------
-// Constants and Parameters
-// ---------------------------------------------------------------------------
-
-#define CTTE__k 500
-#define CTTE__MIN_SIZE 20
-#define PARAM__COLORING_PATCH 1
 
 
 // ---------------------------------------------------------------------------
@@ -31,7 +25,10 @@
 // ---------------------------------------------------------------------------
 
 void segmentImg (Picture*, int *);
+
 DisjointSet *segmentGraph(Graph*);
+
 float getThreshold(int, int);
+
 void coloringPatch(Bitmap* bmp, DWORD *pattern);
 

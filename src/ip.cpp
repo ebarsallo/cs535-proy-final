@@ -20,7 +20,7 @@ getRGB(DWORD c, BYTE& r, BYTE& g, BYTE& b)
 }
 
 
-/// <summary>Set a single colore vlue from the RGB components</summary>
+/// <summary>Set a single colore value from the RGB components</summary>
 DWORD 
 setRGB(BYTE r, BYTE g, BYTE b)
 {
@@ -169,18 +169,12 @@ filterDarkEffect(Bitmap* bmp, unsigned int percent)
 
 
 /// <summary>Image filter. Apply a <b>Gaussian</b> blur to a given image.</summary>
-/*
 Bitmap* 
 filterGaussianBlur(Bitmap* bmp, DWORD mask)
 {
-	processImg(bmp, 
-		[mask](DWORD& color) {
-			color = color & mask;
-		}
-	);
-	return bmp;
+	/* TODO */
 }
-*/
+
 
 
 /// <summary>Get the dominant RGB component in a given image.</summary>
