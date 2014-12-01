@@ -1,6 +1,11 @@
 // ---------------------------------------------------------------------------
 // Weathering.cpp
-// Weathering main class
+// Stone Weathering main class based on [XU11].
+//
+// References:
+// [XU11] Xue, S., Dorsey, J., & Rushmeier, H. (2011, June). Stone weathering 
+//   in a photograph. In Computer Graphics Forum (Vol.30, No.4, pp. 189-1196). 
+//   Blackwell Publishing Ltd.
 //
 // Remarks
 // None.
@@ -15,25 +20,19 @@ Weathering::Weathering(wstring filename)
 }
 
 
+///<summary>Destruct a Weathering object.</summary>
 Weathering::~Weathering()
 {
 	delete _pic;
 }
 
 
-
+///<summary>Apply weathering effect to a object.</summary>
 void
 Weathering::apply (void) 
 {
-	wstring fn = _pic->getFilename(); //_imgfn;
-	Bitmap *bmp = _pic->getBitmap();  //_bmp;
-	int num;
 
-	//DWORD *pixels = new DWORD[_pic->getWidth() * _pic->getHeight()];
-	//_pic->getRGBArray(pixels);
-
-
-	erodeSilhouette(_pic);
+	erodeSilhouetteMain(_pic);
 
 	//segmentImg(_pic, &num);
 

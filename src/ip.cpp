@@ -282,6 +282,38 @@ setRandomRGB ()
 	return setRGB(r, g, b);
 }
 
+
+/// <summary>Color a bitmap according an specified pattern.</summary>
+void 
+pixels2Bmp(Bitmap* bmp, DWORD *pattern)
+{
+	int width = bmp->GetWidth();
+	int height = bmp->GetHeight();
+
+	// Lock the bitmap.
+	BitmapData bitmapData;
+	Rect rect(0, 0, bmp->GetWidth(), bmp->GetHeight());
+	bmp->LockBits(&rect, ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
+
+	// Get a pointer to the bitmap data.
+	DWORD* image_bits = (DWORD*)bitmapData.Scan0;
+
+	// Call the function for each pixel in the image.
+	for (int y=0; y < height; ++y)
+	{      
+		for (int x=0; x < width; ++x)
+		{
+			// Get the current pixel value.
+			DWORD* curr_pixel = image_bits + (y * width) + x;
+			*curr_pixel = pattern[(y * width) + x];
+		}
+	}
+	
+	// Unlock the bitmap.
+	bmp->UnlockBits(&bitmapData);
+}
+
+
 // ---------------------------------------------------------------------------
 // Classes Implementation
 // ---------------------------------------------------------------------------

@@ -9,6 +9,7 @@
 
 #include "tools.h"
 
+/// <summary>Compute the square of a float x (x*x).</summary>
 float
 square(float x) {
 	return x*x;

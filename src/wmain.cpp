@@ -13,8 +13,7 @@ int wmain()
 	// Perform image processing.
 	//testProcessImgs(L"D:\\tmp\\samples");
 
-	//Weathering *we = new Weathering (L"D:\\Code\\samples\\Koala.jpg");
-	Weathering *we = new Weathering (L"D:\\Code\\samples\\vase.jpg");
+	Weathering *we = new Weathering (L"D:\\Code\\samples\\test\\vase.jpg");
 	we->apply();
 
 

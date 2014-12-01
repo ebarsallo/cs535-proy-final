@@ -24,11 +24,12 @@
 // Routines
 // ---------------------------------------------------------------------------
 
+///<summary>Patch segment an image.</summary>
 void segmentImg (Picture*, int *);
 
+/// <summary>Segmentation algorithm of a graph</summary>
 DisjointSet *segmentGraph(Graph*);
 
+/// <summary>Get threshold based on the size of the components</summary>
 float getThreshold(int, int);
-
-void coloringPatch(Bitmap* bmp, DWORD *pattern);
 

@@ -62,11 +62,21 @@ DWORD getColorDominance(Bitmap* bmp);
 /// (bmp, jpeg, etc).</summary>
 int getEncoderCLSID(const WCHAR* format, CLSID* pClsid);
 
+
+// ---------------------------------------------------------------------------
+// Image processing routines
+// ---------------------------------------------------------------------------
+
 /// <summary>Compute difference of intensity between pixels</summary>
 float diffIntensity (DWORD pixel1, DWORD pixel2);
 
 /// <summary>Return a random color.</summary>
 DWORD setRandomRGB ();
+
+/// <summary>Color a bitmap according an specified pattern.</summary>
+void pixels2Bmp(Bitmap* bmp, DWORD *pattern);
+
+
 // ---------------------------------------------------------------------------
 // Tools
 // ---------------------------------------------------------------------------

@@ -11,37 +11,91 @@
 #include "silhouette-erosion.h"
 
 
+/// <summary>Checks if a pixels has the background intensity.</summary>
 bool 
 isBg(DWORD p)
 {
 	BYTE r,g,b;
 	getRGB(p, r, g, b);
 
-	return r == CTTE__BG_COLOR_R && CTTE__BG_COLOR_G == g && CTTE__BG_COLOR_B == b;
+	return (r == CTTE__BG_COLOR_R && CTTE__BG_COLOR_G == g && CTTE__BG_COLOR_B == b);
 }
 
+
+/// <summary>Set a pixel with the defined background color.</summary>
+DWORD 
+setBgRGB()
+{
+	return setRGB(CTTE__BG_COLOR_R, CTTE__BG_COLOR_G, CTTE__BG_COLOR_B);
+}
+
+
+/// <summary>If  pixel is going to be erode, bled its intensity onto its below neighbor.</summary>
+DWORD 
+setBledRGB(DWORD x1, DWORD x0)
+{
+	BYTE r0,g0,b0;
+	BYTE r1,g1,b1;
+
+	getRGB(x0, r0, g0, b0);
+	getRGB(x1, r1, g1, b1);
+
+	r1 = CTTE__EROSION_ALFA*r1 + (1-CTTE__EROSION_ALFA)*r0;
+	g1 = CTTE__EROSION_ALFA*g1 + (1-CTTE__EROSION_ALFA)*g0;
+	b1 = CTTE__EROSION_ALFA*b1 + (1-CTTE__EROSION_ALFA)*b0;
+
+	return setRGB(r1, g1, b1);
+}
+
+
+/// <summary>Main routine to simulate the erosion on silhouette for an object. Iteratively simulate
+/// the silhouette erosion process n times.</summary>
 void
 erodeSilhouetteMain(Picture *img)
 {
 
+	int width  = img->getWidth();
+	int height = img->getHeight();
+	int n;
+	int t = CTTE__EROSION_T;
+
+	DWORD *pixels = new DWORD[width*height];		// image
+	float *durability = new float[width*height];	// durability index
+	
+	// get RGB pixel array
+	img->getRGBArray(pixels);
+
+	// init durability (t=0)
+	for (int i=0; i<width*height; i++)
+		durability[i] = (float)CTTE__EROSION_DELTA0;
+
+	// Iterate n times and substract the erosion rate of each pixel to its durability index 
+	n = (int)(CTTE__EROSION_EPSILON * sqrt((float)width*height)*t);
+	for (int i=0; i<n; i++)
+		erodeSilhouette(pixels, durability, width, height, i);
+
+	pixels2Bmp (img->_bmp, pixels);
+
+	delete [] durability;
+	delete [] pixels;
 }
 
+
+/// <summary>Simulate the erosion on silhouette for an object (one iteration).</summary>
 void 
-erodeSilhouette(Picture *img, )
+erodeSilhouette(DWORD *pixels, float *durability, int width, int height, int t)
 {
 	std::vector<pixel_t> vecSilhouette;
 	std::vector<pixel_t>::iterator it;
 
-	detectSilhouette (img, vecSilhouette);
+	detectSilhouette (pixels, vecSilhouette, width, height);
 
-	int size = vecSilhouette.size();
-	float *erosion = new float [size];
+	// debug
+	//for (int y=0; y<height; y++)
+	//	for (int x=0; x<width; x++){
+	//		pixels[y*width + x] = setBgRGB();
+	//	}
 
-	int width  = img->getWidth();
-	int height = img->getHeight();
-	DWORD *pixels = new DWORD[width*height];
-	
-	img->getRGBArray(pixels);
 
 	// iterate vector
 	int ix=0;
@@ -53,7 +107,6 @@ erodeSilhouette(Picture *img, )
 		
 		int w = CTTE__EROSION_NH_WIDTH;
 		int half = int((w-1)/2);
-		//int right = width - left;
 
 		// compute boundaries
 		if (x - half > 0) {
@@ -85,44 +138,36 @@ erodeSilhouette(Picture *img, )
 
 
 		float rho = (float)na/(float)(na+ns);
-		erosion[ix] = rho;
+
+		// substract erosion from durability
+		durability[y * width + x] -= rho;
+
+		// if durability falls bellow zero, drops from object
+		if (durability[y * width + x] < 0) {
+
+			// bled intensity to the below neighbor
+			if (!isBg(pixels[(y+1) * width + x]))
+				pixels[(y+1) * width + x] = setBledRGB(pixels[(y+1) * width + x], pixels[y * width + x]);
+
+			// erode pixel
+			pixels[y * width + x] = setBgRGB(); //setRGB(0,0,0);
+		}
 
 	} /* for (it=vecSilhouette) */
 
-	delete [] pixels;
-
-
-	/* Iterate n times and substract the erosion rate of each pixel to its durability index */
-
-	float *durability = new float [size];
-	// init durability (t=0)
-	for (int i=0; i<size; i++)
-		durability[i] = CTTE__EROSION_DELTA0;
-	
-	// reduce durability
-	for (int i=0; i<size; i++)
-		durability[i] -= erosion[i];
-
-	delete [] durability;
-	delete [] erosion;
 }
 
+
+/// <summary>Detect the pixels which correspond to the silhouette of the object.</summary>
 void
-detectSilhouette (Picture *img, std::vector<pixel_t> &vec)
+detectSilhouette (DWORD *pixels, std::vector<pixel_t> &vec, int width, int height)
 {
-	int width  = img->getWidth();
-	int height = img->getHeight();
-
-	DWORD *pixels = new DWORD[width*height];
-	
-	img->getRGBArray(pixels);
-
-	// Mark background pixels
+	// if the pixels is out of the object it should has at least 
+	// one neighbor that is out of the object (background)
 	for (int y=0; y<height; y++)
 		for (int x=0; x<width; x++){
 
-			// if the pixels is out of the object check if the pixel 
-			// has at least one neighbor that is out of the object (background)
+			// Process non background pixels.	
 			if (!isBg(pixels[y*width + x])) {
 
 				int x0, y0, wx, hy;		// boundary of the neighbors of the pixel
@@ -135,14 +180,14 @@ detectSilhouette (Picture *img, std::vector<pixel_t> &vec)
 
 				bool found = FALSE;
 
-				// check in the neighborhood if at least of pixel is background
+				// check in the neighborhood if at least one pixel is background
 				for (int yi=0; y0+yi<hy && !found; yi++)
 					for (int xi=0; x0+xi<wx && !found; xi++) {
 						if (isBg(pixels[(y0+yi)*width + (x0+xi)])) {
 							pixel_t p;
 
-							p.x = x0+xi;
-							p.y = y0+yi;
+							p.x = x;
+							p.y = y;
 							vec.push_back(p);
 
 							found = TRUE;
@@ -151,7 +196,5 @@ detectSilhouette (Picture *img, std::vector<pixel_t> &vec)
 			} /* if !isBg(..)*/
 
 		} /* for (x<width) */
-
-	delete [] pixels;
 }
 

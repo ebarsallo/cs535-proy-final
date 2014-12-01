@@ -1,7 +1,12 @@
 #pragma once
 // ---------------------------------------------------------------------------
 // Weathering.h
-// Weathering main class header.
+// Stone Weathering main class header.
+//
+// References:
+// [XU11] Xue, S., Dorsey, J., & Rushmeier, H. (2011, June). Stone weathering 
+//   in a photograph. In Computer Graphics Forum (Vol.30, No.4, pp. 189-1196). 
+//   Blackwell Publishing Ltd.
 //
 // Remarks
 // Header file
@@ -15,9 +20,6 @@
 class Weathering
 {
 private:
-	//wstring _imgfn;
-	//Bitmap* _bmp;
-
 	Picture* _pic;
 
 public:
@@ -25,8 +27,6 @@ public:
 	Weathering(wstring filename);
 	~Weathering(void);
 
-	//void setPhoto(wstring filename);
-	//wstring getPhoto();
 	void apply(void);
 };
 

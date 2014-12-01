@@ -20,5 +20,7 @@
 
 // Silhouette Erosion Parameters
 #define	CTTE__EROSION_EPSILON 0.0002
-#define CTTE__EROSION_DELTA0 0.01
+#define CTTE__EROSION_DELTA0 0.1
 #define CTTE__EROSION_NH_WIDTH 7
+#define CTTE__EROSION_T 40
+#define CTTE__EROSION_ALFA 0.20

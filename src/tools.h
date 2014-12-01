@@ -14,5 +14,8 @@
 // functions
 // ---------------------------------------------------------------------------
 
-float 
-euclideanDst (float x1, float y1, float z1, float x2, float y2, float z2);
+/// <summary>Compute the square of a float x (x*x).</summary>
+float square(float x);
+
+/// <summary>Compute the euclidean distance</summary>
+float euclideanDst (float x1, float y1, float z1, float x2, float y2, float z2);
