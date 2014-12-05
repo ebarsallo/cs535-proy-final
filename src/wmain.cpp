@@ -1,13 +1,23 @@
 #include "ip.h"
 #include "Weathering.h"
 
+// main routine
+//
+// ---------------------------------------------------------------------------
+// ebarsall
+// Final Project: Appearance Editing 
+//
+// Remarks:
+// gdiplus library needed in order to execute visual studio project.
+// ---------------------------------------------------------------------------
+
 int wmain()
 {
 	
 	Gdiplus::GdiplusStartupInput	gdiStartup;
 	ULONG_PTR						gdiToken;
 
-	// Initialize GDI+.
+	// GDI+ init
 	Gdiplus::GdiplusStartup(&gdiToken, &gdiStartup, nullptr);
 
 	// Test samples object
@@ -25,10 +35,10 @@ int wmain()
 	test[9] = L"D:\\Code\\samples\\test-appedit\\vase-2592.jpg";
 	
 	// Perform weathering effect
-	Weathering *we = new Weathering (test[5]);
+	Weathering *we = new Weathering (test[9]);
 	we->apply();
 
-	// Shutdown GDI+.
+	// GDI+ shutdown
 	Gdiplus::GdiplusShutdown(gdiToken);
 
 	delete [] test;

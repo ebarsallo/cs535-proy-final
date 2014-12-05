@@ -2,6 +2,8 @@
 // Graph.cpp
 // Undirected graph representation (with weights).
 //
+// author. ebarsall
+//
 // Remarks
 // None.
 // ---------------------------------------------------------------------------

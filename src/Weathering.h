@@ -1,7 +1,10 @@
 #pragma once
 // ---------------------------------------------------------------------------
 // Weathering.h
-// Stone Weathering main class header.
+// Appearance Editing by on weathering based on [XU11].
+//
+// author. ebarsall
+//
 //
 // References:
 // [XU11] Xue, S., Dorsey, J., & Rushmeier, H. (2011, June). Stone weathering 
@@ -28,6 +31,7 @@ public:
 	Weathering(std::wstring filename);
 	~Weathering(void);
 
+	// Operations
 	void apply(void);
 };
 

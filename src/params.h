@@ -4,6 +4,8 @@
 // Global parameteres.
 //
 //
+// author. ebarsall
+//
 // Remarks
 // Header file
 // ---------------------------------------------------------------------------

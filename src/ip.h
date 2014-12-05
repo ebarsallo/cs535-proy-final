@@ -4,6 +4,8 @@
 // Filters are implemented using parallel processing (gdi). 
 // Based on MSDN documetation.
 //
+// author. ebarsall
+//
 // Remarks
 // Header file
 // ---------------------------------------------------------------------------
@@ -87,36 +89,3 @@ void pixels2Bmp(Gdiplus::Bitmap* bmp, DWORD *pattern);
 // ---------------------------------------------------------------------------
 // Tools
 // ---------------------------------------------------------------------------
-void testProcessImgs(const std::wstring& directory);
-
-// ---------------------------------------------------------------------------
-// Classes Definition
-// ---------------------------------------------------------------------------
-
-/// <summary>A synchronization primitive which is signaled when its count 
-/// reaches zero.</summary>
-class CountdownEvent
-{
-public:
-	// constructor
-	CountdownEvent(unsigned int count);
-
-	// Decrements the event counter.
-	void signal();
-
-	// Increments the event counter.
-	void add_count();
-
-	// Blocks the current context until the event is set.
-	void wait();
-
-private:
-   volatile long _current;		// The current count.
-   Concurrency::event _event;				// The event that is set when the counter reaches zero.
-
-   // Disable copy constructor.
-   CountdownEvent(const CountdownEvent&);
-
-   // Disable assignment.
-   CountdownEvent const & operator=(CountdownEvent const&);
-};

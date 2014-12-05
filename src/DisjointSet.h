@@ -4,6 +4,7 @@
 // Class that represent a disjoint set of components (builded from a undirected 
 // weighted graph).
 //
+// author. ebarsall
 //
 // Remarks
 // Header file

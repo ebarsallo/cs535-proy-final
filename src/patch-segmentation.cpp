@@ -2,6 +2,9 @@
 // patch-segmentation.cpp
 // Tools to patch segment an image based on [FH04] method.
 //
+// author. ebarsall
+//
+//
 // References:
 // [FH04] Felzenswalb, P; Huttenlocher, D. Efficient graph-based image 
 //   segmentation. Int. J. Comput. Vision 59 (September 2004), 167-181, 3
@@ -161,6 +164,7 @@ segmentImg (Picture *img, int *numPatch)
 		for (int x=0; x<width; x++) {
 			int c = ds->find(y*width + x);
 
+			// Do not add the patch if its belong to bg
 			DWORD color = pixels2[y*width + x];
 			if (!isBg(color)) {
 				map[c]  = 0;
@@ -170,6 +174,7 @@ segmentImg (Picture *img, int *numPatch)
 
 	*numPatch = map.size();
 
+	
 	int *pm = new int[*numPatch];
 	int yy = 0;
 	for (std::hash_map<int,int>::iterator iter = map.begin(); iter != map.end(); ++iter){
@@ -177,7 +182,11 @@ segmentImg (Picture *img, int *numPatch)
 		yy++;
 	}
 
+	// Sort patches according to weather tendency
 	std::sort(pm, pm+(yy-1));
+
+	// Patches of richer geometry features will be update by those with fewer.
+	// (so we need to keep the correspondence)
 	int hf = (int)(yy/2);
 	for (int i=0; i<yy; i++) {
 		if (i>hf)
@@ -185,7 +194,6 @@ segmentImg (Picture *img, int *numPatch)
 		else 
 			map[pm[i]] = 0;
 	}
-
 
 	DWORD* update = new DWORD [width*height];
 	for (int y=0; y<height; y++)
@@ -207,6 +215,8 @@ segmentImg (Picture *img, int *numPatch)
 			if (isBg (pixels2[y*width + x]))
 				update[y*width + x] = setBgRGB();
 			else {
+
+				// Apply interpolation in the Laplacian field in each RGB component.
 				BYTE r0,g0,b0;
 				BYTE r1,g1,b1;
 
@@ -220,14 +230,15 @@ segmentImg (Picture *img, int *numPatch)
 				update[y*width + x] = setRGB(r0,g0,b0);
 			}
 		}
-				
+	
+	// Update image
 	pixels2Bmp (img->_bmp, update);
 
 	delete [] update;
 	delete [] pm;
 	
   
-	// Coloring patch
+	// Coloring patch (should be used only for debugging purpose)
 	if (PARAM__COLORING_PATCH) {
   
 		DWORD* colors = new DWORD [width*height];

@@ -3,6 +3,8 @@
 // tools.h
 // Tools library. Unsorted utility functions.
 //
+// author. ebarsall
+//
 // Remarks
 // Header file
 // ---------------------------------------------------------------------------

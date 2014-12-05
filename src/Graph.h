@@ -3,6 +3,8 @@
 // Graph.h
 // Undirected graph representation (with weights).
 //
+// author. ebarsall
+//
 //
 // Remarks
 // Header file

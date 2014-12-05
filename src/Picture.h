@@ -4,6 +4,8 @@
 // Image class using a Bitmap object to represent the image.
 //
 //
+// author. ebarsall
+//
 // Remarks
 // Header file
 // ---------------------------------------------------------------------------

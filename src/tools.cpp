@@ -2,6 +2,8 @@
 // tools.cpp
 // Tools library. Unsorted utility functions.
 //
+// author. ebarsall
+//
 // Remarks
 // None.
 // ---------------------------------------------------------------------------

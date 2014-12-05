@@ -4,6 +4,8 @@
 // Routines to simulate erosion on the object.
 //
 //
+// author. ebarsall
+//
 // Remarks
 // Header file
 // ---------------------------------------------------------------------------

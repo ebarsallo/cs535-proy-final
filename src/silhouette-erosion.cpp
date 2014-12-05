@@ -2,6 +2,7 @@
 // silhouette-erosion.cpp
 // Routines to simulate erosion on the object.
 //
+// author. ebarsall
 //
 // Remarks
 // None.

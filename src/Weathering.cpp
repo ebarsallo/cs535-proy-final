@@ -1,6 +1,9 @@
 // ---------------------------------------------------------------------------
 // Weathering.cpp
-// Stone Weathering main class based on [XU11].
+// Appearance Editing by on weathering based on [XU11].
+// Main class.
+//
+// author. ebarsall
 //
 // References:
 // [XU11] Xue, S., Dorsey, J., & Rushmeier, H. (2011, June). Stone weathering 
@@ -35,7 +38,10 @@ Weathering::apply (void)
 {
 	int num;
 
+	// Patch segmentation and smooth effect
 	segmentImg(_pic, &num);
+
+	// Erode silhouette
 	erodeSilhouetteMain(_pic);
 
 	_pic->save();
