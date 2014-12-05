@@ -31,6 +31,7 @@ public:
 	void getRGBArray(DWORD *);
 	void save(std::wstring);
 	void save(void);
+	Picture* clone(void);
 
 	// Getters & Setters
 	std::wstring getFilename(void);

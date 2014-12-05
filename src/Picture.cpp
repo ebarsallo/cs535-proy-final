@@ -27,6 +27,18 @@ Picture::~Picture()
 	//if (_bmp != nullptr) delete _bmp;
 }
 
+
+/// Picture
+/// <summary>Constructor of a image store in disk</summary>
+Picture*
+Picture::clone(void)
+{
+	Picture *pic = new Picture(_fn);
+
+	return pic;
+}
+
+
 /// getRGBArray
 /// <summary>Get an array with the RGB intensity of each pixel.</summary>
 void
@@ -51,7 +63,7 @@ Picture::getRGBArray(DWORD *arr)
 		{
 			// Get the current pixel value.
 			DWORD* pixel = image_bits + (y * width) + x;
-			arr[(y * width) + x] = *pixel;
+			arr[(y * width) + x] = (*pixel);
 		}
 	});
 

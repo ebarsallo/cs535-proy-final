@@ -50,5 +50,6 @@ public:
 	// Getters & Setters
 	int getSize();
 	int getSize(int);
+	elem_t getElem(int);
 };
 

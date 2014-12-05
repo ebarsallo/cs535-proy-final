@@ -206,9 +206,9 @@ filterGaussianBlur(Gdiplus::Bitmap* bmp, DWORD mask)
 }
 
 
-/// <summary>Apply a lapacian filter.</summary>
+/// <summary>Apply a laplacian filter.</summary>
 void
-filterLapacian (Gdiplus::Bitmap* bmp)
+filterLaplacian (Gdiplus::Bitmap* bmp)
 {
 	int width = bmp->GetWidth();
 	int height = bmp->GetHeight();
@@ -229,6 +229,7 @@ filterLapacian (Gdiplus::Bitmap* bmp)
 			// Get the current pixel value.
 			DWORD* curr_pixel = image_bits + (y * width) + x;
 
+			// Apply laplacian filter per RGB component.
 			BYTE r,g,b;
 			BYTE r1,g1,b1;
 			BYTE r2,g2,b2;
@@ -244,9 +245,6 @@ filterLapacian (Gdiplus::Bitmap* bmp)
 			BYTE dxr = r1 + r2 - 2*r;	BYTE dxg = g1 + g2 - 2*g;	BYTE dxb = b1 + b2 - 2*b;
 			BYTE dyr = r3 + r4 - 2*r;	BYTE dyg = g3 + g4 - 2*g;	BYTE dyb = b3 + b4 - 2*b;
 
-			//DWORD dx = *(image_bits + (y * width) + x-1) + *(image_bits + (y * width) + x+1) - 2*(*(image_bits + (y * width) + x));
-			//DWORD dy = *(image_bits + ((y-1) * width) + x) + *(image_bits + ((y+1) * width) + x) - 2*(*(image_bits + (y * width) + x));
-			
 			*curr_pixel = setRGB(dxr + dyr, dxg + dyg, dxb + dyb);
 		}
 	}

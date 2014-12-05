@@ -108,3 +108,12 @@ DisjointSet::getSize(int a)
 {
 	return _forest[a].size;
 }
+
+
+/// getElem(int i)
+/// <summary>Return the ith element of the forest.</summary>
+elem_t 
+DisjointSet::getElem(int i)
+{
+	return _forest[i];
+}

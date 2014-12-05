@@ -36,7 +36,7 @@ Weathering::apply (void)
 	int num;
 
 	segmentImg(_pic, &num);
-	//erodeSilhouetteMain(_pic);
+	erodeSilhouetteMain(_pic);
 
 	_pic->save();
 	

@@ -24,13 +24,15 @@ segmentImg (Picture *img, int *numPatch)
 	int xx=0;
 	int width  = img->getWidth();
 	int height = img->getHeight();
-
+	
 	DWORD bgColor = setBgRGB();
 
 	CTTE__SEG_MIN_SIZE = (int) (height*width / CTTE__SEG_n);
 
+	Picture *picT = img->clone();		// Temporal picture
+
 	// Apply gamma correction first to the object (except to the background)
-	filterGammaCorrectionMask(img->_bmp, 1/2.2, bgColor);
+	filterGammaCorrectionMask(picT->_bmp, 1/2.2, bgColor);
 
 	// Build an undirected graph upon pixels
 	// Since the graph is undirected and assuming that each pixel (node) have 8 neighbors (the pixels just next to it),
@@ -42,7 +44,7 @@ segmentImg (Picture *img, int *numPatch)
 	Graph *g = new Graph(width*height*4);
 
 	DWORD *pixels = new DWORD[width*height];	
-	img->getRGBArray(pixels);
+	picT->getRGBArray(pixels);
 	
 	// Compute weather tendendy per pixel
 	float *dx = new float[width*height];
@@ -84,6 +86,7 @@ segmentImg (Picture *img, int *numPatch)
 
 		} /* for x<width */
 
+	delete [] pixels; // new
 
 	float w=0.0f;
 	for (int y=0; y<height; y++)
@@ -142,9 +145,87 @@ segmentImg (Picture *img, int *numPatch)
   
 	delete g;
 
-	*numPatch = ds->getSize();
+	//*numPatch = ds->getSize();
+	
+	//filterLaplacian(img->_bmp);
 
-	//filterLapacian(img->_bmp);
+	DWORD *pixels2 = new DWORD[width*height];	
+	img->getRGBArray(pixels2);
+
+
+	// Get patchs
+	std::hash_map<int,int> map;
+	std::hash_map<int,DWORD> mapc;
+
+	for (int y=0; y<height; y++)
+		for (int x=0; x<width; x++) {
+			int c = ds->find(y*width + x);
+
+			DWORD color = pixels2[y*width + x];
+			if (!isBg(color)) {
+				map[c]  = 0;
+				mapc[c] = pixels2[y*width + x];
+			}
+		} /* y<height -- getPatchs */
+
+	*numPatch = map.size();
+
+	int *pm = new int[*numPatch];
+	int yy = 0;
+	for (std::hash_map<int,int>::iterator iter = map.begin(); iter != map.end(); ++iter){
+		pm[yy] = iter->first;
+		yy++;
+	}
+
+	std::sort(pm, pm+(yy-1));
+	int hf = (int)(yy/2);
+	for (int i=0; i<yy; i++) {
+		if (i>hf)
+			map[pm[i]] = pm[(yy-1)-i];
+		else 
+			map[pm[i]] = 0;
+	}
+
+
+	DWORD* update = new DWORD [width*height];
+	for (int y=0; y<height; y++)
+		for (int x=0; x<width; x++) {
+	
+			int p0 = ds->find(y*width + x);
+			int p1 = map[p0];
+
+			if (p1==0) {
+				update[y*width + x] = pixels2[y*width + x];
+				continue;
+			}
+
+			elem_t e = ds->getElem(p0);
+			double dp0 = e.weight / e.size;
+			double wp0 = exp(-CTTE__SEG_lap_k*dp0*CTTE__EROSION_T); 
+
+			// Do not update bg pixels
+			if (isBg (pixels2[y*width + x]))
+				update[y*width + x] = setBgRGB();
+			else {
+				BYTE r0,g0,b0;
+				BYTE r1,g1,b1;
+
+				getRGB(pixels2[y*width + x], r0, g0, b0);
+				getRGB(mapc[p1], r1, g1, b1);
+
+				r0 = r0*wp0 + (1-wp0)*r1;
+				g0 = g0*wp0 + (1-wp0)*g1;
+				b0 = b0*wp0 + (1-wp0)*b1;
+
+				update[y*width + x] = setRGB(r0,g0,b0);
+			}
+		}
+				
+	pixels2Bmp (img->_bmp, update);
+
+	delete [] update;
+	delete [] pm;
+	
   
 	// Coloring patch
 	if (PARAM__COLORING_PATCH) {
@@ -160,7 +241,7 @@ segmentImg (Picture *img, int *numPatch)
 			for (int x=0; x<width; x++) {
 				int c = ds->find(y*width + x);
 
-				if (isBg (pixels[y*width + x]))
+				if (isBg (pixels2[y*width + x]))
 					patchs[y*width + x] = setBgRGB();
 				else
 					patchs[y*width + x] = colors[c];
@@ -173,7 +254,7 @@ segmentImg (Picture *img, int *numPatch)
 
 	} /* if PARAM_COLORING_PATCH */
   
-	delete [] pixels;
+	delete [] pixels2;
 	delete ds;
 
 }
@@ -203,10 +284,9 @@ segmentGraph(Graph *g)
 	for (int i=0; i<n;i++)
 		threshold[i] = getThreshold(CTTE__SEG_k, 1);
 
-	
-
 	// create disjoint-set (forest)
-	DisjointSet *forest = new DisjointSet(n);
+	//DisjointSet *forest = new DisjointSet(n);
+	DisjointSet *forest = new DisjointSet(g);
 
 	// Step 2. Repeat step 3 for q = 1 ...m
 	// Step 3. Construct S^q given S^{q-1}.

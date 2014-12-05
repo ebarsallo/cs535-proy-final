@@ -11,6 +11,8 @@
 // Header file
 // ---------------------------------------------------------------------------
 #include <algorithm>
+#include <hash_map>
+#include <unordered_map>
 
 #include "ip.h"
 #include "Picture.h"
@@ -18,6 +20,19 @@
 #include "tools.h"
 #include "params.h"
 
+
+
+// ---------------------------------------------------------------------------
+// Data structures
+// ---------------------------------------------------------------------------
+
+struct patch_s {
+	int head;
+	float weight;
+	int size;
+	DWORD c;
+};
+typedef patch_s patch_t;
 
 
 // ---------------------------------------------------------------------------

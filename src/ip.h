@@ -56,7 +56,7 @@ Gdiplus::Bitmap* filterColorMask(Gdiplus::Bitmap* bmp, DWORD mask);
 Gdiplus::Bitmap* filterDarkEffect(Gdiplus::Bitmap* bmp, unsigned int percent);
 
 /// <summary>Apply a lapacian filter.</summary>
-void filterLapacian (Gdiplus::Bitmap* bmp);
+void filterLaplacian (Gdiplus::Bitmap* bmp);
 
 /// <summary>Get the dominant RGB component in a given image.</summary>
 /// <returns>Returns the corresponding color mask for the dominant component.</returns>
