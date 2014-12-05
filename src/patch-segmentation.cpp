@@ -11,7 +11,7 @@
 // ---------------------------------------------------------------------------
 #include "patch-segmentation.h"
 
-
+int		CTTE__SEG_MIN_SIZE = 1400;		/* Number of pixels in the smallest patch */
 
 // ---------------------------------------------------------------------------
 // Routines
@@ -25,8 +25,13 @@ segmentImg (Picture *img, int *numPatch)
 	int width  = img->getWidth();
 	int height = img->getHeight();
 
+	DWORD bgColor = setBgRGB();
+
+	CTTE__SEG_MIN_SIZE = (int) (height*width / CTTE__SEG_n);
+
 	// Apply gamma correction first
-	filterGammaCorrection(img->_bmp, 1/2.2);
+	// filterGammaCorrection(img->_bmp, 1/2.2);
+	filterGammaCorrectionMask(img->_bmp, 1/2.2, bgColor);
 
 	// Build an undirected graph upon pixels
 	// Since the graph is undirected and assuming that each pixel (node) have 8 neighbors (the pixels just next to it),
@@ -37,43 +42,79 @@ segmentImg (Picture *img, int *numPatch)
 	//  d) An edge between a pixel (node) and the one just below to the left.
 	Graph *g = new Graph(width*height*4);
 
-	DWORD *pixels = new DWORD[width*height];
-	
+	DWORD *pixels = new DWORD[width*height];	
 	img->getRGBArray(pixels);
 	
+	// Compute weather tendendy per pixel
+	float *dx = new float[width*height];
+	for (int y=0; y<height; y++)
+		for (int x=0; x<width; x++){
+			
+			int x0, y0, wx, hy;		// boundary of the neighbors of the pixel
+
+			// compute boundaries
+			if (x==0) x0 = x; else x0 = x - 1;
+			if (y==0) y0 = x; else y0 = y - 1;
+			if (x==width-1)  wx = x; else wx = x + 1;
+			if (y==height-1) hy = y; else hy = y + 1;
+
+			// get the max_x{v(x)} of the pixel x
+			float maxx = 0.0;
+			for (int yi=0; y0+yi<hy; yi++)
+				for (int xi=0; x0+xi<wx; xi++) {
+
+					DWORD t = getSumRGBColor(pixels[(y0+yi)*width + (x0+xi)]);
+					if (t > maxx) maxx = (float)t;
+
+					} /* for (x0+xi<wx) */
+
+			dx[y*width + x] = pow((float)getSumRGBColor(pixels[y*width + x])/maxx, (float)CTTE__SEG_ETA);
+
+		} /* for x<width */
+
+
 	float w=0.0f;
 	for (int y=0; y<height; y++)
 		for (int x=0; x<width; x++){
 			
+			// skip if the pixel is background
+			// if (isBg(pixels[y*width + x])) continue;
+
 			// pairing pixels right next to each other: (x,y) -> (x+1,y)
-			if (x < (width-1)) {
-				w = diffIntensity(pixels[(y*width) + x], pixels[(y*width) + x+1]);
+			if ( x < (width-1) ) {
+				//w = diffIntensity(pixels[(y*width) + x], pixels[(y*width) + x+1]);
+				w = dx[(y*width) + x] + dx[(y*width) + x+1];
 				g->setEdge(xx, (y*width) + x, (y*width) + x+1, w);
 				xx++;
 			}
 
 			// pairing pixels with the one below: (x,y) -> (x,y+1)
-			if (y < (height-1)) {
-				w = diffIntensity(pixels[(y*width) + x], pixels[(y+1)*width + y+1]);
-				g->setEdge(xx, (y*width) + x, (y+1)*width + y+1, w);
+			if ( y < (height-1) ) {
+				//w = diffIntensity(pixels[(y*width) + x], pixels[(y+1)*width + x]);
+				w = dx[(y*width) + x] + dx[(y+1)*width + x];
+				g->setEdge(xx, (y*width) + x, (y+1)*width + x, w);
 				xx++;
 			}
 
 			// pairing pixels with the one diagonal right below: (x,y) -> (x+1,y+1)
-			if ((x < (width-1)) && (y < (height-1))) {
-				w = diffIntensity(pixels[(y*width) + x], pixels[(y+1)*width + x+1]);
+			if ( (x < (width-1)) && (y < (height-1)) ) {
+				//w = diffIntensity(pixels[(y*width) + x], pixels[(y+1)*width + x+1]);
+				w = dx[(y*width) + x] + dx[(y+1)*width + x+1];
 				g->setEdge(xx, (y*width) + x, (y+1)*width + x+1, w);
 				xx++;
 			}
 
 			// pairing pixels with the one diagonal left below: (x,y) -> (x-1,y+1)
-			if ((x > 0) && (y < (height-1))) {
-				w = diffIntensity(pixels[(y*width) + x], pixels[(y+1)*width + x-1]);
+			if ( (x > 0) && (y < (height-1)) ) {
+				//w = diffIntensity(pixels[(y*width) + x], pixels[(y+1)*width + x-1]);
+				w = dx[(y*width) + x] + dx[(y+1)*width + x-1];
 				g->setEdge(xx, (y*width) + x, (y+1)*width + x-1, w);
 				xx++;
 			}
 		}
 	
+	delete [] dx;
+
 	// Segment graph
 	DisjointSet *ds = segmentGraph(g);
 
@@ -83,11 +124,10 @@ segmentImg (Picture *img, int *numPatch)
 		int a = ds->find(g->getEdge(i).s);
 		int b = ds->find(g->getEdge(i).t);
 		
-		if ((a != b) && ((ds->getSize(a) < CTTE__MIN_SIZE) || (ds->getSize(b) < CTTE__MIN_SIZE)))
+		if ((a != b) && ((ds->getSize(a) < CTTE__SEG_MIN_SIZE) || (ds->getSize(b) < CTTE__SEG_MIN_SIZE)))
 			ds->join(a, b);
 	}
   
-	delete [] pixels;
 	delete g;
 
 	*numPatch = ds->getSize();
@@ -106,8 +146,11 @@ segmentImg (Picture *img, int *numPatch)
 		for (int y=0; y<height; y++)
 			for (int x=0; x<width; x++) {
 				int c = ds->find(y*width + x);
-				patchs[y*width + x] = colors[c];
-				//img->_bmp->SetPixel(x, y, colors[c]);
+
+				if (isBg (pixels[y*width + x]))
+					patchs[y*width + x] = setBgRGB();
+				else
+					patchs[y*width + x] = colors[c];
 			}
 				
 		pixels2Bmp (img->_bmp, patchs);
@@ -117,6 +160,7 @@ segmentImg (Picture *img, int *numPatch)
 
   } /* if PARAM_COLORING_PATCH */
   
+	delete [] pixels;
 	delete ds;
 
 }
@@ -144,7 +188,7 @@ segmentGraph(Graph *g)
 	// Init threshold for each component. 
 	float *threshold = new float[n];
 	for (int i=0; i<n;i++)
-		threshold[i] = getThreshold(CTTE__k, 1);
+		threshold[i] = getThreshold(CTTE__SEG_k, 1);
 
 	// create disjoint-set (forest)
 	DisjointSet *forest = new DisjointSet(n);
@@ -163,7 +207,7 @@ segmentGraph(Graph *g)
 				s = forest->find(s);
 				
 				// Update threshold
-				threshold[s] = edgeptr->w + getThreshold(CTTE__k, forest->getSize(s));
+				threshold[s] = edgeptr->w + getThreshold(CTTE__SEG_k, forest->getSize(s));
 			} /* if (w <= treshold[s]) && (w <= treshold[t]) */
 		} /* if (s != t) */
 	}

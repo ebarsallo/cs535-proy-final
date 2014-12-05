@@ -6,7 +6,7 @@
 // Remarks
 // Header file
 // ---------------------------------------------------------------------------
-
+#include <time.h>
 #include <windows.h>
 #include <gdiplus.h>
 #include <iostream>
@@ -16,9 +16,9 @@
 
 #include "tools.h"
 
+using namespace std;
 using namespace Concurrency;
 using namespace Gdiplus;
-using namespace std;
 
 // ---------------------------------------------------------------------------
 // Operations
@@ -41,6 +41,9 @@ void processImgs(Bitmap* bmp, const function <void (DWORD&)>& f);
 
 /// <summary>Image filter. Apply a gamma correction of RGB channel.</summary>
 Bitmap* filterGammaCorrection(Bitmap* bmp, double gamma);
+
+/// <summary>Image filter. Apply a gamma correction of RGB channel if the RGB color is diff than the mask.</summary>
+Bitmap* filterGammaCorrectionMask(Bitmap* bmp, double gamma, DWORD mask);
 
 /// <summary>Image filter. Converts a given image color to grayscale.</summary>
 Bitmap* filterGrayscale(Bitmap* bmp);
@@ -72,6 +75,9 @@ float diffIntensity (DWORD pixel1, DWORD pixel2);
 
 /// <summary>Return a random color.</summary>
 DWORD setRandomRGB ();
+
+/// <summary>Return the sum of each RGB component.</summary>
+DWORD getSumRGBColor (DWORD color);
 
 /// <summary>Color a bitmap according an specified pattern.</summary>
 void pixels2Bmp(Bitmap* bmp, DWORD *pattern);

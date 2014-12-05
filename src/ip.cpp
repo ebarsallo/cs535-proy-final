@@ -5,8 +5,6 @@
 // Remarks
 // Compile using: cl.exe /DUNICODE /EHsc ip.cpp /link gdiplus.lib
 // ---------------------------------------------------------------------------
-#include <time.h>
-
 #include "ip.h"
 
 
@@ -107,6 +105,35 @@ filterGammaCorrection(Bitmap* bmp, double gamma)
 			BYTE b1 = static_cast<BYTE>(pow(b, gv));
 
 			color = setRGB(r1, g1, b1);
+		}
+	);
+	return bmp;
+}
+
+
+/// <summary>Image filter. Apply a gamma correction of RGB channel if the RGB color is diff than the mask.</summary>
+Bitmap* 
+filterGammaCorrectionMask(Bitmap* bmp, double gamma, DWORD mask) 
+{
+	processImg(bmp, 
+		[gamma, mask](DWORD& color) {
+			BYTE r0, g0, b0;
+			BYTE rm, gm, bm;
+			double gv = gamma;
+
+			getRGB(color, r0, g0, b0);
+			getRGB(mask, rm, gm, bm);
+
+			if (r0 == rm && g0 == gm && b0 == bm)
+				color = color;
+			else {
+				// Apply gamma correction to the pixel.
+				BYTE r1 = static_cast<BYTE>(pow(r0, gv));
+				BYTE g1 = static_cast<BYTE>(pow(g0, gv));
+				BYTE b1 = static_cast<BYTE>(pow(b0, gv));
+
+				color = setRGB(r1, g1, b1);
+			}
 		}
 	);
 	return bmp;
@@ -272,14 +299,23 @@ diffIntensity (DWORD pixel1, DWORD pixel2)
 DWORD
 setRandomRGB ()
 {
-	//srand(time(NULL));
-
 	BYTE r, g, b;
 	r = rand() % 255;
 	g = rand() % 255;
 	b = rand() % 255;
 
 	return setRGB(r, g, b);
+}
+
+
+/// <summary>Return the sum of each RGB component.</summary>
+DWORD
+getSumRGBColor (DWORD color)
+{
+	BYTE r, g, b;
+
+	getRGB(color, r, g, b);
+	return r + g + b;
 }
 
 

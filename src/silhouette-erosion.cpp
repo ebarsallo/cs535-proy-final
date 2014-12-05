@@ -11,25 +11,6 @@
 #include "silhouette-erosion.h"
 
 
-/// <summary>Checks if a pixels has the background intensity.</summary>
-bool 
-isBg(DWORD p)
-{
-	BYTE r,g,b;
-	getRGB(p, r, g, b);
-
-	return (r == CTTE__BG_COLOR_R && CTTE__BG_COLOR_G == g && CTTE__BG_COLOR_B == b);
-}
-
-
-/// <summary>Set a pixel with the defined background color.</summary>
-DWORD 
-setBgRGB()
-{
-	return setRGB(CTTE__BG_COLOR_R, CTTE__BG_COLOR_G, CTTE__BG_COLOR_B);
-}
-
-
 /// <summary>If  pixel is going to be erode, bled its intensity onto its below neighbor.</summary>
 DWORD 
 setBledRGB(DWORD x1, DWORD x0)

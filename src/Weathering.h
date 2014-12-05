@@ -11,6 +11,7 @@
 // Remarks
 // Header file
 // ---------------------------------------------------------------------------
+#include <time.h>
 
 #include "ip.h"
 #include "Picture.h"

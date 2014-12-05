@@ -16,7 +16,9 @@
 /// <summary>Construct a Weathering object upon a image file.</summary>
 Weathering::Weathering(wstring filename)
 {
+	srand(unsigned (time(NULL)) );
 	_pic = new Picture(filename);
+
 }
 
 
@@ -31,12 +33,10 @@ Weathering::~Weathering()
 void
 Weathering::apply (void) 
 {
+	int num;
 
-	erodeSilhouetteMain(_pic);
-
-	//segmentImg(_pic, &num);
-
-
+	segmentImg(_pic, &num);
+	//erodeSilhouetteMain(_pic);
 
 	_pic->save();
 	

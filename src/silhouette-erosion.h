@@ -26,12 +26,6 @@ typedef pixel_s pixel_t;
 // Routines
 // ---------------------------------------------------------------------------
 
-/// <summary>Checks if a pixels has the background intensity.</summary>
-bool isBg(DWORD p);
-
-/// <summary>Set a pixel with the defined background color.</summary>
-DWORD setBgRGB();
-
 /// <summary>If  pixel is going to be erode, bled its intensity onto its below neighbor.</summary>
 DWORD setBledRGB(DWORD, DWORD);
 
