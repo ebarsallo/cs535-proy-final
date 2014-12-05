@@ -1,7 +1,8 @@
 #pragma once
 // ---------------------------------------------------------------------------
 // ip.h
-// Image processing
+// Filters are implemented using parallel processing (gdi). 
+// Based on MSDN documetation.
 //
 // Remarks
 // Header file
@@ -16,9 +17,6 @@
 
 #include "tools.h"
 
-using namespace std;
-using namespace Concurrency;
-using namespace Gdiplus;
 
 // ---------------------------------------------------------------------------
 // Operations
@@ -30,36 +28,39 @@ void getRGB(DWORD c, BYTE& r, BYTE& g, BYTE& b);
 DWORD setRGB(BYTE r, BYTE g, BYTE b);
 
 /// <summary>Loads an image file from disk.</summary>
-Bitmap* loadImage(wstring filename);
+Gdiplus::Bitmap* loadImage(std::wstring filename);
 
 /// <summary>Process each pixel of an bmp object with a filter function</summary>
-void processImgs(Bitmap* bmp, const function <void (DWORD&)>& f);
+void processImgs(Gdiplus::Bitmap* bmp, const std::function <void (DWORD&)>& f);
 
 // ---------------------------------------------------------------------------
 // Image filters
 // ---------------------------------------------------------------------------
 
 /// <summary>Image filter. Apply a gamma correction of RGB channel.</summary>
-Bitmap* filterGammaCorrection(Bitmap* bmp, double gamma);
+Gdiplus::Bitmap* filterGammaCorrection(Gdiplus::Bitmap* bmp, double gamma);
 
 /// <summary>Image filter. Apply a gamma correction of RGB channel if the RGB color is diff than the mask.</summary>
-Bitmap* filterGammaCorrectionMask(Bitmap* bmp, double gamma, DWORD mask);
+Gdiplus::Bitmap* filterGammaCorrectionMask(Gdiplus::Bitmap* bmp, double gamma, DWORD mask);
 
 /// <summary>Image filter. Converts a given image color to grayscale.</summary>
-Bitmap* filterGrayscale(Bitmap* bmp);
+Gdiplus::Bitmap* filterGrayscale(Gdiplus::Bitmap* bmp);
 
 /// <summary>Image filter. Applies a sephia filter to a given image.</summary>
-Bitmap* filterSepia(Bitmap* bmp);
+Gdiplus::Bitmap* filterSepia(Gdiplus::Bitmap* bmp);
 
 /// <summary>Image Filter. Applies a color mask to each pixel of a given image.</summary>
-Bitmap* filterColorMask(Bitmap* bmp, DWORD mask);
+Gdiplus::Bitmap* filterColorMask(Gdiplus::Bitmap* bmp, DWORD mask);
 
 /// <summary>Image filter. Darken a given image (to make more obscure) by a specific amount.</summary>
-Bitmap* filterDarkEffect(Bitmap* bmp, unsigned int percent);
+Gdiplus::Bitmap* filterDarkEffect(Gdiplus::Bitmap* bmp, unsigned int percent);
+
+/// <summary>Apply a lapacian filter.</summary>
+void filterLapacian (Gdiplus::Bitmap* bmp);
 
 /// <summary>Get the dominant RGB component in a given image.</summary>
 /// <returns>Returns the corresponding color mask for the dominant component.</returns>
-DWORD getColorDominance(Bitmap* bmp);
+DWORD getColorDominance(Gdiplus::Bitmap* bmp);
 
 /// <summary>Get the CLS ID (class identifier) for a given MIME TYPE of an image encoder 
 /// (bmp, jpeg, etc).</summary>
@@ -80,13 +81,13 @@ DWORD setRandomRGB ();
 DWORD getSumRGBColor (DWORD color);
 
 /// <summary>Color a bitmap according an specified pattern.</summary>
-void pixels2Bmp(Bitmap* bmp, DWORD *pattern);
+void pixels2Bmp(Gdiplus::Bitmap* bmp, DWORD *pattern);
 
 
 // ---------------------------------------------------------------------------
 // Tools
 // ---------------------------------------------------------------------------
-void testProcessImgs(const wstring& directory);
+void testProcessImgs(const std::wstring& directory);
 
 // ---------------------------------------------------------------------------
 // Classes Definition
@@ -111,7 +112,7 @@ public:
 
 private:
    volatile long _current;		// The current count.
-   event _event;				// The event that is set when the counter reaches zero.
+   Concurrency::event _event;				// The event that is set when the counter reaches zero.
 
    // Disable copy constructor.
    CountdownEvent(const CountdownEvent&);

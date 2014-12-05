@@ -1,9 +1,12 @@
 // ---------------------------------------------------------------------------
 // ip.cpp
-// Image processing
+// Image processing.
+// Filters are implemented using parallel processing and GDI+ library. 
+// Based on MSDN documetation.
 //
 // Remarks
-// Compile using: cl.exe /DUNICODE /EHsc ip.cpp /link gdiplus.lib
+// On command line compile using: 
+// cl.exe /DUNICODE /EHsc ip.cpp /link gdiplus.lib
 // ---------------------------------------------------------------------------
 #include "ip.h"
 
@@ -27,9 +30,9 @@ setRGB(BYTE r, BYTE g, BYTE b)
 
 
 /// <summary>Loads an image file from disk.</summary>
-Bitmap*
-loadImage(wstring filename) {
-	Bitmap *bmp = new Bitmap (filename.c_str());
+Gdiplus::Bitmap*
+loadImage(std::wstring filename) {
+	Gdiplus::Bitmap *bmp = new Gdiplus::Bitmap (filename.c_str());
 
 	return bmp;
 }
@@ -37,21 +40,21 @@ loadImage(wstring filename) {
 
 /// <summary>Process each pixel of an bmp object with a filter function.</summary>
 void 
-processImg(Bitmap* bmp, const function <void (DWORD&)>& f)
+processImg(Gdiplus::Bitmap* bmp, const std::function <void (DWORD&)>& f)
 {
 	int width = bmp->GetWidth();
 	int height = bmp->GetHeight();
 
 	// Lock the bitmap.
-	BitmapData bitmapData;
-	Rect rect(0, 0, bmp->GetWidth(), bmp->GetHeight());
-	bmp->LockBits(&rect, ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
+	Gdiplus::BitmapData bitmapData;
+	Gdiplus::Rect rect(0, 0, bmp->GetWidth(), bmp->GetHeight());
+	bmp->LockBits(&rect, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
 
 	// Get a pointer to the bitmap data.
 	DWORD* image_bits = (DWORD*)bitmapData.Scan0;
 
 	// Call the function for each pixel in the image.
-	parallel_for (0, height, [&, width](int y)
+	Concurrency::parallel_for (0, height, [&, width](int y)
 	{      
 		for (int x = 0; x < width; ++x)
 		{
@@ -69,8 +72,8 @@ processImg(Bitmap* bmp, const function <void (DWORD&)>& f)
 
 
 /// <summary>Image filter. Converts a given image color to grayscale.</summary>
-Bitmap* 
-filterGrayscale(Bitmap* bmp) 
+Gdiplus::Bitmap* 
+filterGrayscale(Gdiplus::Bitmap* bmp) 
 {
 	processImg(bmp, 
 		[](DWORD& color) {
@@ -89,8 +92,8 @@ filterGrayscale(Bitmap* bmp)
 
 
 /// <summary>Image filter. Apply a gamma correction of RGB channel.</summary>
-Bitmap* 
-filterGammaCorrection(Bitmap* bmp, double gamma) 
+Gdiplus::Bitmap* 
+filterGammaCorrection(Gdiplus::Bitmap* bmp, double gamma) 
 {
 	processImg(bmp, 
 		[gamma](DWORD& color) {
@@ -112,8 +115,8 @@ filterGammaCorrection(Bitmap* bmp, double gamma)
 
 
 /// <summary>Image filter. Apply a gamma correction of RGB channel if the RGB color is diff than the mask.</summary>
-Bitmap* 
-filterGammaCorrectionMask(Bitmap* bmp, double gamma, DWORD mask) 
+Gdiplus::Bitmap* 
+filterGammaCorrectionMask(Gdiplus::Bitmap* bmp, double gamma, DWORD mask) 
 {
 	processImg(bmp, 
 		[gamma, mask](DWORD& color) {
@@ -141,8 +144,8 @@ filterGammaCorrectionMask(Bitmap* bmp, double gamma, DWORD mask)
 
 
 /// <summary>Image filter. Apply a sephia filter to a given image.</summary>
-Bitmap* 
-filterSepia(Bitmap* bmp) 
+Gdiplus::Bitmap* 
+filterSepia(Gdiplus::Bitmap* bmp) 
 {
 	processImg(bmp, 
 		[](DWORD& color) {
@@ -161,8 +164,8 @@ filterSepia(Bitmap* bmp)
 
 
 /// <summary>Image Filter. Applies a color mask to each pixel of a given image.</summary>
-Bitmap* 
-filterColorMask(Bitmap* bmp, DWORD mask)
+Gdiplus::Bitmap* 
+filterColorMask(Gdiplus::Bitmap* bmp, DWORD mask)
 {
 	processImg(bmp, 
 		[mask](DWORD& color) {
@@ -173,11 +176,11 @@ filterColorMask(Bitmap* bmp, DWORD mask)
 }
 
 /// <summary>Image filter. <b>Darken</b> a given image (to make more obscure) by a specific amount.</summary>
-Bitmap* 
-filterDarkEffect(Bitmap* bmp, unsigned int percent)
+Gdiplus::Bitmap* 
+filterDarkEffect(Gdiplus::Bitmap* bmp, unsigned int percent)
 {
 	if (percent > 100)
-		throw invalid_argument("filterDarkEffect: Percent must be less or equal than 100.");
+		throw std::invalid_argument("filterDarkEffect: Percent must be less or equal than 100.");
 
 	double factor = percent / 100.0;
 
@@ -196,25 +199,74 @@ filterDarkEffect(Bitmap* bmp, unsigned int percent)
 
 
 /// <summary>Image filter. Apply a <b>Gaussian</b> blur to a given image.</summary>
-Bitmap* 
-filterGaussianBlur(Bitmap* bmp, DWORD mask)
+Gdiplus::Bitmap* 
+filterGaussianBlur(Gdiplus::Bitmap* bmp, DWORD mask)
 {
 	/* TODO */
 }
 
 
+/// <summary>Apply a lapacian filter.</summary>
+void
+filterLapacian (Gdiplus::Bitmap* bmp)
+{
+	int width = bmp->GetWidth();
+	int height = bmp->GetHeight();
+
+	// Lock the bitmap.
+	Gdiplus::BitmapData bitmapData;
+	Gdiplus::Rect rect(0, 0, bmp->GetWidth(), bmp->GetHeight());
+	bmp->LockBits(&rect, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
+
+	// Get a pointer to the bitmap data.
+	DWORD* image_bits = (DWORD*)bitmapData.Scan0;
+
+	// iterate each pixel.
+	for (int y=1; y < height-1; ++y)
+	{      
+		for (int x=1; x < width-1; ++x)
+		{
+			// Get the current pixel value.
+			DWORD* curr_pixel = image_bits + (y * width) + x;
+
+			BYTE r,g,b;
+			BYTE r1,g1,b1;
+			BYTE r2,g2,b2;
+			BYTE r3,g3,b3;
+			BYTE r4,g4,b4;
+
+			getRGB(*curr_pixel, r, g, b);
+			getRGB(*(image_bits + (y * width) + x-1), r1, g1, b1);
+			getRGB(*(image_bits + (y * width) + x+1), r1, g1, b1);
+			getRGB(*(image_bits + ((y-1) * width) + x), r1, g1, b1);
+			getRGB(*(image_bits + ((y+1) * width) + x), r1, g1, b1);
+
+			BYTE dxr = r1 + r2 - 2*r;	BYTE dxg = g1 + g2 - 2*g;	BYTE dxb = b1 + b2 - 2*b;
+			BYTE dyr = r3 + r4 - 2*r;	BYTE dyg = g3 + g4 - 2*g;	BYTE dyb = b3 + b4 - 2*b;
+
+			//DWORD dx = *(image_bits + (y * width) + x-1) + *(image_bits + (y * width) + x+1) - 2*(*(image_bits + (y * width) + x));
+			//DWORD dy = *(image_bits + ((y-1) * width) + x) + *(image_bits + ((y+1) * width) + x) - 2*(*(image_bits + (y * width) + x));
+			
+			*curr_pixel = setRGB(dxr + dyr, dxg + dyg, dxb + dyb);
+		}
+	}
+	
+	// Unlock the bitmap.
+	bmp->UnlockBits(&bitmapData);
+}
+
 
 /// <summary>Get the dominant RGB component in a given image.</summary>
 /// <returns>Returns the corresponding color mask for the dominant component.</returns>
 DWORD 
-getColorDominance(Bitmap* bmp)
+getColorDominance(Gdiplus::Bitmap* bmp)
 {
 	// The ProcessImage function processes the image in parallel.
 	// The following combinable objects enable the callback function
 	// to increment the color counts without using a lock.
-	combinable<unsigned int> rc;
-	combinable<unsigned int> gc;
-	combinable<unsigned int> bc;
+	Concurrency::combinable<unsigned int> rc;
+	Concurrency::combinable<unsigned int> gc;
+	Concurrency::combinable<unsigned int> bc;
 
 	processImg(bmp, 
 		[&](DWORD& color) {
@@ -230,9 +282,9 @@ getColorDominance(Bitmap* bmp)
 	);
 
 	// Check which color (r,g,b) is dominant and return the corresponding color mask.
-	unsigned int r = rc.combine(plus<unsigned int>());
-	unsigned int g = gc.combine(plus<unsigned int>());
-	unsigned int b = bc.combine(plus<unsigned int>());
+	unsigned int r = rc.combine(std::plus<unsigned int>());
+	unsigned int g = gc.combine(std::plus<unsigned int>());
+	unsigned int b = bc.combine(std::plus<unsigned int>());
 
 	if (r + r >= g + b)
 		return 0x00ff0000;
@@ -251,17 +303,17 @@ getEncoderCLSID(const WCHAR* format, CLSID* pClsid)
 	UINT  num = 0;          // number of image encoders
 	UINT  size = 0;         // size of the image encoder array in bytes
 
-	ImageCodecInfo* pImageCodecInfo = nullptr;
+	Gdiplus::ImageCodecInfo* pImageCodecInfo = nullptr;
 
-	GetImageEncodersSize(&num, &size);
+	Gdiplus::GetImageEncodersSize(&num, &size);
 	if(size == 0)
-		return -1;  // Failure
+		return -1;  // Error
 
-	pImageCodecInfo = (ImageCodecInfo*)(malloc(size));
+	pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
 	if(pImageCodecInfo == nullptr)
-		return -1;  // Failure
+		return -1;  // Error
 
-	GetImageEncoders(num, size, pImageCodecInfo);
+	Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 
 	for(UINT j = 0; j < num; ++j)
 	{
@@ -269,12 +321,12 @@ getEncoderCLSID(const WCHAR* format, CLSID* pClsid)
 		{
 			*pClsid = pImageCodecInfo[j].Clsid;
 			free(pImageCodecInfo);
-			return j;  // Success
+			return j;  // OK
 		}    
 	}
 
 	free(pImageCodecInfo);
-	return -1;  // Failure
+	return -1;  // Error
 }
 
 
@@ -321,20 +373,20 @@ getSumRGBColor (DWORD color)
 
 /// <summary>Color a bitmap according an specified pattern.</summary>
 void 
-pixels2Bmp(Bitmap* bmp, DWORD *pattern)
+pixels2Bmp(Gdiplus::Bitmap* bmp, DWORD *pattern)
 {
 	int width = bmp->GetWidth();
 	int height = bmp->GetHeight();
 
 	// Lock the bitmap.
-	BitmapData bitmapData;
-	Rect rect(0, 0, bmp->GetWidth(), bmp->GetHeight());
-	bmp->LockBits(&rect, ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
+	Gdiplus::BitmapData bitmapData;
+	Gdiplus::Rect rect(0, 0, bmp->GetWidth(), bmp->GetHeight());
+	bmp->LockBits(&rect, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
 
 	// Get a pointer to the bitmap data.
 	DWORD* image_bits = (DWORD*)bitmapData.Scan0;
 
-	// Call the function for each pixel in the image.
+	// iterate each pixel.
 	for (int y=0; y < height; ++y)
 	{      
 		for (int x=0; x < width; ++x)
@@ -390,23 +442,23 @@ CountdownEvent::wait()
 // Demonstrates how to set up a message network that performs a series of 
 // image processing operations on each JPEG image in the given directory and
 // saves each altered image as a Windows bitmap.
-void testProcessImgs(const wstring& directory)
+void testProcessImgs(const std::wstring& directory)
 {
    // Holds the number of active image processing operations and 
    // signals to the main thread that processing is complete.
    CountdownEvent active(0);
 
    // Maps Bitmap objects to their original file names.
-   map<Bitmap*, wstring> bitmap_file_names;
+   std::map<Gdiplus::Bitmap*, std::wstring> bitmap_file_names;
 
    //
    // Create the nodes of the network.
    //
 
    // Loads Bitmap objects from disk.
-   transformer<wstring, Bitmap*> load_bitmap(
-      [&](wstring file_name) -> Bitmap* {
-         Bitmap* bmp = new Bitmap(file_name.c_str());
+   Concurrency::transformer<std::wstring, Gdiplus::Bitmap*> load_bitmap(
+      [&](std::wstring file_name) -> Gdiplus::Bitmap* {
+         Gdiplus::Bitmap* bmp = new Gdiplus::Bitmap(file_name.c_str());
          if (bmp != nullptr)
             bitmap_file_names.insert(make_pair(bmp, file_name));
          return bmp;
@@ -414,15 +466,15 @@ void testProcessImgs(const wstring& directory)
    );
 
    // Holds loaded Bitmap objects.
-   unbounded_buffer<Bitmap*> loaded_bitmaps;
+   Concurrency::unbounded_buffer<Gdiplus::Bitmap*> loaded_bitmaps;
 
    // Converts images that are authored by Tom to grayscale.
-   transformer<Bitmap*, Bitmap*> grayscale(
-      [](Bitmap* bmp) {
+   Concurrency::transformer<Gdiplus::Bitmap*, Gdiplus::Bitmap*> grayscale(
+      [](Gdiplus::Bitmap* bmp) {
          return filterGrayscale(bmp);
       },
       nullptr,
-      [](Bitmap* bmp) -> bool {
+      [](Gdiplus::Bitmap* bmp) -> bool {
          if (bmp == nullptr)
             return false;
 
@@ -432,9 +484,9 @@ void testProcessImgs(const wstring& directory)
             // Image does not have the Artist property.
             return false;
 
-         PropertyItem* artistProperty = (PropertyItem*) malloc(size);
+         Gdiplus::PropertyItem* artistProperty = (Gdiplus::PropertyItem*) malloc(size);
          bmp->GetPropertyItem(PropertyTagArtist, size, artistProperty);
-         string artist(reinterpret_cast<char*>(artistProperty->value));
+         std::string artist(reinterpret_cast<char*>(artistProperty->value));
          free(artistProperty);
 
          return (artist.find("Tom ") == 0);
@@ -443,12 +495,12 @@ void testProcessImgs(const wstring& directory)
 
    // Removes the green and blue color components from images that have red as
    // their dominant color.
-   transformer<Bitmap*, Bitmap*> colormask(
-      [](Bitmap* bmp) {
+   Concurrency::transformer<Gdiplus::Bitmap*, Gdiplus::Bitmap*> colormask(
+      [](Gdiplus::Bitmap* bmp) {
          return filterColorMask(bmp, 0x00ff0000);
       },
       nullptr,
-      [](Bitmap* bmp) -> bool { 
+      [](Gdiplus::Bitmap* bmp) -> bool { 
          if (bmp == nullptr)
             return false;
          return (getColorDominance(bmp) == 0x00ff0000);
@@ -456,28 +508,28 @@ void testProcessImgs(const wstring& directory)
    );
 
    // Darkens the color of the provided Bitmap object.
-   transformer<Bitmap*, Bitmap*> darken([](Bitmap* bmp) {
+   Concurrency::transformer<Gdiplus::Bitmap*, Gdiplus::Bitmap*> darken([](Gdiplus::Bitmap* bmp) {
       return filterDarkEffect(bmp, 50);
    });
 
    // Darkens the color of the provided Bitmap object.
-   transformer<Bitmap*, Bitmap*> gammaC([](Bitmap* bmp) {
+   Concurrency::transformer<Gdiplus::Bitmap*, Gdiplus::Bitmap*> gammaC([](Gdiplus::Bitmap* bmp) {
       return filterGammaCorrection(bmp, 1/2.2);
    });
 
    // Applies sepia toning to the remaining images.
-   transformer<Bitmap*, Bitmap*> sepiatone(
-      [](Bitmap* bmp) {
+   Concurrency::transformer<Gdiplus::Bitmap*, Gdiplus::Bitmap*> sepiatone(
+      [](Gdiplus::Bitmap* bmp) {
          return filterSepia(bmp);
       },
       nullptr,
-      [](Bitmap* bmp) -> bool { return bmp != nullptr; }
+      [](Gdiplus::Bitmap* bmp) -> bool { return bmp != nullptr; }
    );
 
    // Saves Bitmap objects to disk.
-   transformer<Bitmap*, Bitmap*> save_bitmap([&](Bitmap* bmp) -> Bitmap* {
+   Concurrency::transformer<Gdiplus::Bitmap*, Gdiplus::Bitmap*> save_bitmap([&](Gdiplus::Bitmap* bmp) -> Gdiplus::Bitmap* {
       // Replace the file extension with .bmp.
-      wstring file_name = bitmap_file_names[bmp];
+      std::wstring file_name = bitmap_file_names[bmp];
       //file_name.replace(file_name.rfind(L'.') + 1, 3, L"bmp");
 	  file_name.replace(file_name.rfind(L'.'), 6, L"_x.jpg");
 
@@ -492,13 +544,13 @@ void testProcessImgs(const wstring& directory)
    });
 
    // Deletes Bitmap objects.
-   transformer<Bitmap*, Bitmap*> delete_bitmap([](Bitmap* bmp) -> Bitmap* {      
+   Concurrency::transformer<Gdiplus::Bitmap*, Gdiplus::Bitmap*> delete_bitmap([](Gdiplus::Bitmap* bmp) -> Gdiplus::Bitmap* {      
       delete bmp;
       return nullptr;
    });
 
    // Decrements the event counter.
-   call<Bitmap*> decrement([&](Bitmap* _) {      
+   Concurrency::call<Gdiplus::Bitmap*> decrement([&](Gdiplus::Bitmap* _) {      
       active.signal();
    });
 
@@ -524,7 +576,7 @@ void testProcessImgs(const wstring& directory)
    delete_bitmap.link_target(&decrement);
 
    // Traverse all files in the directory.
-   wstring searchPattern = directory;
+   std::wstring searchPattern = directory;
    searchPattern.append(L"\\*");
 
    WIN32_FIND_DATA fileFindData;
@@ -535,13 +587,13 @@ void testProcessImgs(const wstring& directory)
    {
       if (!(fileFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
       {
-         wstring file = fileFindData.cFileName;
+         std::wstring file = fileFindData.cFileName;
 
          // Process only JPEG files.
          if (file.rfind(L".jpg") == file.length() - 4)
          {
             // Form the full path to the file.
-            wstring full_path(directory);
+            std::wstring full_path(directory);
             full_path.append(L"\\");
             full_path.append(file);
 

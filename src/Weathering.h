@@ -25,7 +25,7 @@ private:
 
 public:
 	Weathering(void);
-	Weathering(wstring filename);
+	Weathering(std::wstring filename);
 	~Weathering(void);
 
 	void apply(void);

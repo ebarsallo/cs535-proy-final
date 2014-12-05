@@ -29,8 +29,7 @@ segmentImg (Picture *img, int *numPatch)
 
 	CTTE__SEG_MIN_SIZE = (int) (height*width / CTTE__SEG_n);
 
-	// Apply gamma correction first
-	// filterGammaCorrection(img->_bmp, 1/2.2);
+	// Apply gamma correction first to the object (except to the background)
 	filterGammaCorrectionMask(img->_bmp, 1/2.2, bgColor);
 
 	// Build an undirected graph upon pixels
@@ -50,23 +49,36 @@ segmentImg (Picture *img, int *numPatch)
 	for (int y=0; y<height; y++)
 		for (int x=0; x<width; x++){
 			
-			int x0, y0, wx, hy;		// boundary of the neighbors of the pixel
+			int x0, y0;		// boundary of the neighbors of the pixel
+
+			int w = CTTE__SEG_NH_WIDTH;
+			int half = int((w-1)/2);
 
 			// compute boundaries
-			if (x==0) x0 = x; else x0 = x - 1;
-			if (y==0) y0 = x; else y0 = y - 1;
-			if (x==width-1)  wx = x; else wx = x + 1;
-			if (y==height-1) hy = y; else hy = y + 1;
+			if (x - half > 0) {
+				if (x + half < width) 
+					x0 = x - half; 
+				else
+					x0 = x - w;
+			} else x0 = 0; 
+		
+			if (y - half > 0) {
+				if (y + half < height)
+					y0 = y - half; 
+				else
+					y0 = y - w;
+			} else y0 = 0;
+
 
 			// get the max_x{v(x)} of the pixel x
 			float maxx = 0.0;
-			for (int yi=0; y0+yi<hy; yi++)
-				for (int xi=0; x0+xi<wx; xi++) {
+			for (int yi=0; y0+yi<y0+w; yi++)
+				for (int xi=0; x0+xi<x0+w; xi++) {
 
 					DWORD t = getSumRGBColor(pixels[(y0+yi)*width + (x0+xi)]);
 					if (t > maxx) maxx = (float)t;
 
-					} /* for (x0+xi<wx) */
+					} /* for (x0+xi<x0+w) */
 
 			dx[y*width + x] = pow((float)getSumRGBColor(pixels[y*width + x])/maxx, (float)CTTE__SEG_ETA);
 
@@ -132,6 +144,7 @@ segmentImg (Picture *img, int *numPatch)
 
 	*numPatch = ds->getSize();
 
+	//filterLapacian(img->_bmp);
   
 	// Coloring patch
 	if (PARAM__COLORING_PATCH) {
@@ -158,7 +171,7 @@ segmentImg (Picture *img, int *numPatch)
 		delete [] patchs;
 		delete [] colors;		  
 
-  } /* if PARAM_COLORING_PATCH */
+	} /* if PARAM_COLORING_PATCH */
   
 	delete [] pixels;
 	delete ds;
@@ -189,6 +202,8 @@ segmentGraph(Graph *g)
 	float *threshold = new float[n];
 	for (int i=0; i<n;i++)
 		threshold[i] = getThreshold(CTTE__SEG_k, 1);
+
+	
 
 	// create disjoint-set (forest)
 	DisjointSet *forest = new DisjointSet(n);

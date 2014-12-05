@@ -43,6 +43,7 @@ public:
 	// Getters & Setters
 	int getNumEdges();
 	int getSize();
+	float getWeight(int);
 	edge_t* getEdgeArray();
 	edge_t  getEdge(int);
 };

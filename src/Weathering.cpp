@@ -14,7 +14,7 @@
 
 
 /// <summary>Construct a Weathering object upon a image file.</summary>
-Weathering::Weathering(wstring filename)
+Weathering::Weathering(std::wstring filename)
 {
 	srand(unsigned (time(NULL)) );
 	_pic = new Picture(filename);

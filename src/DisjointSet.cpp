@@ -26,6 +26,26 @@ DisjointSet::DisjointSet(int n)
 		_forest[i].head = i;
 		_forest[i].rank = 0;
 		_forest[i].size = 1;
+		_forest[i].weight = 0;
+	}
+}
+
+
+/// DisjointSet
+/// <summary>Construct a Disjoint Set from a graph G</summary>
+DisjointSet::DisjointSet(Graph *g)
+{
+	int n = g->getNumEdges();
+
+	_forest = new elem_t[n];
+	_num = n;
+
+	// init
+	for (int i=0; i<n; i++) {
+		_forest[i].head = i;
+		_forest[i].rank = 0;
+		_forest[i].size = 1;
+		_forest[i].weight = g->getWeight(i);
 	}
 }
 
@@ -57,10 +77,12 @@ DisjointSet::join(int a, int b)
 {
 	if (_forest[a].rank > _forest[b].rank) {
 		_forest[b].head = a;
-		_forest[a].size += _forest[b].size;
+		_forest[a].size   += _forest[b].size;
+		_forest[a].weight += _forest[b].weight;
 	} else {
 		_forest[a].head = b;
-		_forest[b].size += _forest[a].size;
+		_forest[b].size   += _forest[a].size;
+		_forest[b].weight += _forest[a].weight;
 
 		if (_forest[a].rank == _forest[b].rank) _forest[b].rank++;
 	}

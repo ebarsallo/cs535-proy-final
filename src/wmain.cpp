@@ -4,33 +4,32 @@
 int wmain()
 {
 	
-	GdiplusStartupInput gdiplusStartupInput;
-	ULONG_PTR           gdiplusToken;
+	Gdiplus::GdiplusStartupInput	gdiStartup;
+	ULONG_PTR						gdiToken;
 
 	// Initialize GDI+.
-	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
+	Gdiplus::GdiplusStartup(&gdiToken, &gdiStartup, nullptr);
 
-	// Perform image processing.
-	//testProcessImgs(L"D:\\tmp\\samples");
-
-	wstring *test = new wstring[10];
+	// Test samples object
+	std::wstring *test = new std::wstring[10];
 
 	test[0] = L"D:\\Code\\samples\\test\\vase.jpg";
 	test[1] = L"D:\\Code\\samples\\test-vase\\vase-2592.jpg";
 	test[2] = L"D:\\Code\\samples\\test-vase\\vase-1296.jpg";
 	test[3] = L"D:\\Code\\samples\\test-vase\\vase-1024.jpg";
 	test[4] = L"D:\\Code\\samples\\test-vase\\vase-800.jpg";
-	test[5] = L"D:\\Code\\samples\\test-buddha\\buddha-2592.jpg";
+	test[5] = L"D:\\Code\\samples\\test-buddha\\buddha_green-2592.jpg";
 	test[6] = L"D:\\Code\\samples\\test-buddha\\buddha-1296.jpg";
 	test[7] = L"D:\\Code\\samples\\test-buddha\\buddha-1024.jpg";
 	test[8] = L"D:\\Code\\samples\\test-buddha\\buddha-800.jpg";
 	test[9] = L"D:\\Code\\samples\\test-appedit\\vase-2592.jpg";
 	
-	Weathering *we = new Weathering (test[9]);
+	// Perform weathering effect
+	Weathering *we = new Weathering (test[5]);
 	we->apply();
 
 	// Shutdown GDI+.
-	GdiplusShutdown(gdiplusToken);
+	Gdiplus::GdiplusShutdown(gdiToken);
 
 	delete [] test;
 	delete we;

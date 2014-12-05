@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Picture.cpp
-// Image class.
+// Image class using a Bitmap object to represent the image.
 //
 // Remarks
 // None.
@@ -10,7 +10,7 @@
 
 /// Picture
 /// <summary>Constructor of a image store in disk</summary>
-Picture::Picture(wstring filename)
+Picture::Picture(std::wstring filename)
 {
 	_bmp = loadImage(filename);
 	_fn  = filename;
@@ -37,15 +37,15 @@ Picture::getRGBArray(DWORD *arr)
 
 	
 	// Lock the bitmap.
-	BitmapData bitmapData;
-	Rect rect(0, 0, width, height);
-	_bmp->LockBits(&rect, ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
+	Gdiplus::BitmapData bitmapData;
+	Gdiplus::Rect rect(0, 0, width, height);
+	_bmp->LockBits(&rect, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, &bitmapData);
 
 	// Get a pointer to the bitmap data.
 	DWORD* image_bits = (DWORD*)bitmapData.Scan0;
 
 	// Call the function for each pixel in the image.
-	parallel_for (0, height, [&, width](int y)
+	Concurrency::parallel_for (0, height, [&, width](int y)
 	{      
 		for (int x = 0; x < width; ++x)
 		{
@@ -66,7 +66,7 @@ Picture::getRGBArray(DWORD *arr)
 void
 Picture::save()
 {
-	wstring fn = _fn;
+	std::wstring fn = _fn;
 	CLSID bmpClsid;
 
 	getEncoderCLSID(L"image/jpeg", &bmpClsid);
@@ -78,7 +78,7 @@ Picture::save()
 
 /// getFilename
 /// <summary>Return picture's filename.</summary>
-wstring 
+std::wstring 
 Picture::getFilename(void)
 {
 	return _fn;
@@ -87,7 +87,7 @@ Picture::getFilename(void)
 
 /// getBitmap
 /// <summary>Return the Bitmap object.</summary>
-Bitmap* 
+Gdiplus::Bitmap* 
 Picture::getBitmap(void)
 {
 	return _bmp;

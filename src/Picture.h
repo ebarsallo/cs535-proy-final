@@ -1,7 +1,7 @@
 #pragma once
 // ---------------------------------------------------------------------------
 // Picture.h
-// Image class.
+// Image class using a Bitmap object to represent the image.
 //
 //
 // Remarks
@@ -14,27 +14,27 @@
 class Picture
 {
 private:
-	wstring _fn;
+	std::wstring _fn;
 	int _w, _h;
 
 	DWORD*  _arr;
 
 public:
-	Bitmap* _bmp;
+	Gdiplus::Bitmap* _bmp;
 
 	Picture(void);
-	Picture(wstring filename);
+	Picture(std::wstring filename);
 	~Picture(void);
 	
 
 	// Operations
 	void getRGBArray(DWORD *);
-	void save(wstring);
+	void save(std::wstring);
 	void save(void);
 
 	// Getters & Setters
-	wstring getFilename(void);
-	Bitmap* getBitmap(void);
+	std::wstring getFilename(void);
+	Gdiplus::Bitmap* getBitmap(void);
 
 	int getHeight();
 	int getWidth();

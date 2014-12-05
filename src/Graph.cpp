@@ -74,6 +74,15 @@ Graph::getNumEdges()
 }
 
 
+/// getWeight
+/// <summary>Return the weight of a specific edge.</summary>
+float 
+Graph::getWeight(int i)
+{
+	return _edges[i].w;
+}
+
+
 /// getEdgeArray
 /// <summary>Return the array of edges</summary>
 edge_t*

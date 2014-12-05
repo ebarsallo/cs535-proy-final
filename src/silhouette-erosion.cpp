@@ -21,9 +21,9 @@ setBledRGB(DWORD x1, DWORD x0)
 	getRGB(x0, r0, g0, b0);
 	getRGB(x1, r1, g1, b1);
 
-	r1 = CTTE__EROSION_ALFA*r1 + (1-CTTE__EROSION_ALFA)*r0;
-	g1 = CTTE__EROSION_ALFA*g1 + (1-CTTE__EROSION_ALFA)*g0;
-	b1 = CTTE__EROSION_ALFA*b1 + (1-CTTE__EROSION_ALFA)*b0;
+	r1 = (BYTE)(CTTE__EROSION_ALFA*r1 + (1-CTTE__EROSION_ALFA)*r0);
+	g1 = (BYTE)(CTTE__EROSION_ALFA*g1 + (1-CTTE__EROSION_ALFA)*g0);
+	b1 = (BYTE)(CTTE__EROSION_ALFA*b1 + (1-CTTE__EROSION_ALFA)*b0);
 
 	return setRGB(r1, g1, b1);
 }
@@ -91,14 +91,14 @@ erodeSilhouette(DWORD *pixels, float *durability, int width, int height, int t)
 
 		// compute boundaries
 		if (x - half > 0) {
-			if (x + half > 0) 
+			if (x + half < width) 
 				x0 = x - half; 
 			else
 				x0 = x - w;
 		} else x0 = 0; 
 		
 		if (y - half > 0) {
-			if (y + half > 0)
+			if (y + half < height)
 				y0 = y - half; 
 			else
 				y0 = y - w;
@@ -134,9 +134,10 @@ erodeSilhouette(DWORD *pixels, float *durability, int width, int height, int t)
 		// if durability falls bellow zero, drops from object
 		if (durability[y * width + x] < 0) {
 
-			// bled intensity to the below neighbor
-			if (!isBg(pixels[(y+1) * width + x]))
-				pixels[(y+1) * width + x] = setBledRGB(pixels[(y+1) * width + x], pixels[y * width + x]);
+			// bled intensity to the below neighbor only if the pixel is inside the frame
+			if (y+1<height)
+				if (!isBg(pixels[(y+1) * width + x]))
+					pixels[(y+1) * width + x] = setBledRGB(pixels[(y+1) * width + x], pixels[y * width + x]);
 
 			// erode pixel
 			pixels[y * width + x] = setBgRGB(); //setRGB(0,0,0);

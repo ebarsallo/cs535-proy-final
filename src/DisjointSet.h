@@ -20,6 +20,7 @@ struct elem {
 	int head;
 	int rank;
 	int size;
+	double weight;
 };
 typedef elem elem_t;
 
@@ -39,6 +40,7 @@ private:
 public:
 	DisjointSet(void);
 	DisjointSet(int);
+	DisjointSet(Graph*);
 	~DisjointSet(void);
 
 	// Operations
