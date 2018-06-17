@@ -1,3 +1,2 @@
-cs535-proy-final
-================
-Weathering App
+## Weathering App
+Simulation of weathering effect to a 2D image
